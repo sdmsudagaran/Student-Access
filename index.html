@@ -164,7 +164,7 @@
                 chartInstance.current = new window.Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: ['Phonic', 'Daily Exp', 'Talk w/ Hanna', 'Cambridge'],
+                        labels: ['Phonic', 'Daily Exp', 'Talk with Hanna', 'Cambridge'],
                         datasets: [{
                             label: 'Topics Learned Today',
                             data: [phonicCount, dailyCount, mecCount, cambridgeCount],
@@ -232,7 +232,7 @@
                         datasets: [
                             { label: 'Phonic', data: weeklyPhonic, backgroundColor: chartColors.phonic.bg, borderColor: chartColors.phonic.border, borderWidth: 1, borderRadius: 4 },
                             { label: 'Daily Exp', data: weeklyDaily, backgroundColor: chartColors.daily.bg, borderColor: chartColors.daily.border, borderWidth: 1, borderRadius: 4 },
-                            { label: 'Talk w/ Hanna', data: weeklyMec, backgroundColor: chartColors.mec.bg, borderColor: chartColors.mec.border, borderWidth: 1, borderRadius: 4 },
+                            { label: 'Talk with Hanna', data: weeklyMec, backgroundColor: chartColors.mec.bg, borderColor: chartColors.mec.border, borderWidth: 1, borderRadius: 4 },
                             { label: 'Cambridge', data: weeklyCambridge, backgroundColor: chartColors.cambridge.bg, borderColor: chartColors.cambridge.border, borderWidth: 1, borderRadius: 4 }
                         ]
                     },
@@ -267,18 +267,29 @@
                     d.setDate(monday.getDate() + i);
                     const dateStr = d.toDateString();
                     
-                    const entry = studentData.find(item => {
+                    const entries = studentData.filter(item => {
                         if(!item.date) return false;
                         return new Date(item.date).toDateString() === dateStr;
-                    }) || {};
+                    });
+                    
+                    const combineField = (field) => {
+                        const values = entries.map(e => e[field]).filter(v => v && v.trim() !== '');
+                        if (values.length === 0) return null;
+                        if (values.length === 1) return values[0];
+                        return values.map((v, idx) => (
+                            <div key={idx} className="mb-2 pb-2 border-b border-dashed border-gray-200 last:border-0 last:mb-0 last:pb-0">
+                                {v}
+                            </div>
+                        ));
+                    };
                     
                     rows.push({
                         dateObj: d,
                         dateStr: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-                        phonic: entry.phonic,
-                        dailyExpression: entry.dailyExpression,
-                        mec: entry.mec,
-                        cambridge: entry.cambridge
+                        phonic: combineField('phonic'),
+                        dailyExpression: combineField('dailyExpression'),
+                        mec: combineField('mec'),
+                        cambridge: combineField('cambridge')
                     });
                 }
                 return rows;
@@ -339,7 +350,7 @@
             const isSaturday = new Date().getDay() === 6;
 
             const studentData = submittedData
-                .filter(d => d.name === student && (d.feedback || d.mec))
+                .filter(d => d.name === student && d.feedback && d.feedback.trim() !== '')
                 .sort((a,b) => {
                     const timeA = new Date(a.date).getTime();
                     const timeB = new Date(b.date).getTime();
